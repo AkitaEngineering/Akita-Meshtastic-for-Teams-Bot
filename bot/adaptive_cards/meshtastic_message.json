@@ -1,0 +1,55 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.4",
+  "body": [
+    {
+      "type": "Container",
+      "items": [
+        {
+            "type": "TextBlock",
+            "text": "📡 Meshtastic Message",
+            "weight": "Bolder",
+            "size": "Medium",
+            "color": "Accent"
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "style": "emphasis",
+      "bleed": true,
+      "items": [
+         {
+            "type": "TextBlock",
+            "text": "**From:** ${sender}",
+            "wrap": true,
+            "spacing": "Small"
+          },
+          {
+            "type": "TextBlock",
+            "text": "**Message:**",
+            "wrap": true,
+            "spacing": "Small",
+            "weight": "Bolder"
+          },
+          {
+            "type": "TextBlock",
+            "text": "${message}",
+            "wrap": true,
+            "spacing": "Small"
+          }
+      ],
+      "spacing": "Medium"
+    },
+    {
+        "type": "TextBlock",
+        "text": "Topic: ${topic}",
+        "wrap": true,
+        "isSubtle": true,
+        "size": "Small",
+        "spacing": "Medium"
+    }
+  ]
+}
+
