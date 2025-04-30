@@ -1,6 +1,7 @@
 # Akita Meshtastic for Teams Bot
 
-A Python-based bot to bridge communication between a Meshtastic mesh network (via MQTT) and Microsoft Teams. Developed by [Akita Engineering](https://www.akitaengineering.com).
+A Python-based bot to bridge communication between a Meshtastic mesh network (via MQTT) and Microsoft Teams. 
+Developed by [Akita Engineering](https://www.akitaengineering.com).
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ## Features
