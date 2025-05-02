@@ -28,7 +28,7 @@ Developed by [Akita Engineering](https://www.akitaengineering.com).
 1.  **Clone the repository:**
     ```bash
     # Replace with Akita Engineering's repo URL when created
-    git clone [https://github.com/akita-engineering/meshtastic-teams-bot.git](https://github.com/akita-engineering/meshtastic-teams-bot.git)
+    git clone [https://github.com/akitaengineering/meshtastic-teams-bot.git](https://github.com/akita-engineering/meshtastic-teams-bot.git)
     cd meshtastic-teams-bot
     ```
 
