@@ -5,8 +5,6 @@ import copy # For deep copying the card template
 from pathlib import Path
 from botbuilder.core import ActivityHandler, TurnContext, MessageFactory, CardFactory
 from botbuilder.schema import ChannelAccount, Activity, ActivityTypes, ConversationReference, Attachment
-# Corrected import if using CloudAdapter style
-from botbuilder.core.integration import CloudAdapter
 
 from bot.config import SETTINGS # Import the single settings instance
 from bot.mqtt_client import MqttClientHandler
@@ -215,9 +213,12 @@ class AkitaMeshtasticTeamsBot(ActivityHandler):
                 logger.info(f"Sending plain text message to Teams conversation: {conv_ref.conversation.id}")
 
 
+            async def _send_activity_async(turn_context: TurnContext):
+                await turn_context.send_activity(activity_to_send)
+
             await ADAPTER.continue_conversation(
                 conv_ref,
-                lambda turn_context: turn_context.send_activity(activity_to_send),
+                _send_activity_async,
                 SETTINGS.TEAMS_APP_ID
             )
 

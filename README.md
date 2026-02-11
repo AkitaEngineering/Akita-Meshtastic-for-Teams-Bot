@@ -22,14 +22,14 @@ Developed by [Akita Engineering](https://www.akitaengineering.com).
 * A Meshtastic node configured with the MQTT module enabled (`uplink_enabled=true`, `downlink_enabled=true`).
 * A Microsoft Teams account and a channel/chat for the bot.
 * An Azure Bot registration (provides Microsoft App ID and Password).
+* If using secure MQTT, a CA certificate or client cert/key as required by your MQTT broker.
 
 ## Setup
 
 1.  **Clone the repository:**
     ```bash
-    # Replace with Akita Engineering's repo URL when created
-    git clone [https://github.com/akitaengineering/meshtastic-teams-bot.git](https://github.com/akita-engineering/meshtastic-teams-bot.git)
-    cd meshtastic-teams-bot
+    git clone https://github.com/AkitaEngineering/Akita-Meshtastic-for-Teams-Bot.git
+    cd Akita-Meshtastic-for-Teams-Bot
     ```
 
 2.  **Create and activate a virtual environment:**
@@ -65,6 +65,11 @@ See `.env.example` for the list of required environment variables. Key variables
 * `MQTT_BROKER_HOST`, `MQTT_BROKER_PORT`, `MQTT_USERNAME`, `MQTT_PASSWORD`
 * `MQTT_CLIENT_ID`
 * `MQTT_BASE_TOPIC` (e.g., `msh/2/json`)
+* TLS/SSL options for MQTT (if your broker requires TLS):
+    * `MQTT_USE_TLS` - Set to `True` to enable TLS (connect to broker with TLS).
+    * `MQTT_CA_CERTS` - Optional path to CA bundle to validate broker certificate.
+    * `MQTT_CERTFILE` / `MQTT_KEYFILE` - Optional client certificate and key for mutual TLS.
+    * `MQTT_TLS_INSECURE` - Optional; set to `True` to skip hostname verification (not recommended in production).
 * `MESH_GATEWAY_NODE_ID` (**Required**, e.g., `!a1b2c3d4`)
 * `TEAMS_APP_ID`, `TEAMS_APP_PASSWORD` (from Azure Bot registration)
 * `TEAMS_TARGET_CONVERSATION_ID` (Optional: Use `@BotName bot info` command to find this ID)
@@ -78,6 +83,79 @@ See `.env.example` for the list of required environment variables. Key variables
     * `bot info` - Shows current bot configuration and the ID of the current Teams conversation (useful for setting `TEAMS_TARGET_CONVERSATION_ID`).
     * `help` or `mesh help` - Shows the help message.
     * `ping` - Checks if the bot is responsive.
+
+    ## Health endpoint
+
+    The application exposes a lightweight health endpoint useful for monitoring and TLS verification.
+
+    Request:
+
+    ```bash
+    curl http://<host>:<port>/health
+    ```
+
+    Example response (JSON):
+
+    ```json
+    {
+        "app": "ok",
+        "mqtt": {
+            "connected": true,
+            "host": "mqtt.example.com",
+            "port": 8883,
+            "use_tls": true
+        },
+        "tls_check": {
+            "ok": true,
+            "message": "TLS handshake successful"
+        }
+    }
+    ```
+
+    If `use_tls` is true, the endpoint performs a quick TLS handshake against the configured MQTT broker using the `MQTT_CA_CERTS`, `MQTT_CERTFILE`, and `MQTT_KEYFILE` values where provided.
+
+    ## Production checklist
+
+    Minimum recommendations before production deploy:
+
+    - Use a secret store (Azure Key Vault, Kubernetes Secrets) for `TEAMS_APP_ID`, `TEAMS_APP_PASSWORD`, and MQTT credentials. Avoid committing `.env`.
+    - Set `ENVIRONMENT=production` and `MQTT_USE_TLS=True`. Provide `MQTT_CA_CERTS` and ensure `MQTT_TLS_INSECURE` is `False`.
+    - Configure monitoring to scrape `/metrics` and alert on `mqtt_connected == 0` or repeated publish failures.
+    - Run vulnerability scans on dependencies and container images as part of CI.
+
+    See `RUNBOOK.md` for operational runbook and troubleshooting steps.
+
+## OpenTelemetry (OTel) configuration
+
+This project includes optional OpenTelemetry tracing. Traces can be exported to an OTLP-compatible collector (e.g., OpenTelemetry Collector, Grafana Agent, Tempo).
+
+Environment variables:
+
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: OTLP HTTP endpoint (example: `http://otel-collector:4318/v1/traces`).
+- `OTEL_EXPORTER_OTLP_INSECURE`: `true` to skip TLS when contacting the OTLP HTTP endpoint (useful for local testing).
+- `OTEL_SERVICE_NAME`: Service name to appear in traces (default: `akita-meshtastic-bot`).
+- `OTEL_AUTO_INSTRUMENT`: Set to `true` to enable automatic instrumentation for `aiohttp` (server) and `paho-mqtt`.
+
+Quick examples:
+
+Enable automatic instrumentation and point to a local collector:
+
+```bash
+export OTEL_AUTO_INSTRUMENT=true
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318/v1/traces
+export OTEL_EXPORTER_OTLP_INSECURE=true
+export OTEL_SERVICE_NAME=akita-meshtastic-bot
+python app.py
+```
+
+If you prefer manual instrumentation (the default), the application adds a simple span for incoming HTTP requests and custom MQTT spans. Automatic instrumentation may create additional spans for aiohttp internals and MQTT operations.
+
+Testing spans locally:
+
+1. Run an OTLP-compatible collector locally (OpenTelemetry Collector or `otelcol`).
+2. Set `OTEL_EXPORTER_OTLP_ENDPOINT` to the collector endpoint and start the app.
+3. Exercise endpoints (e.g., `curl http://localhost:3978/health` and send a bot message) and inspect the collector's output or backend.
+
 
 ## Contributing
 
